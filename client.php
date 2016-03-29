@@ -14,7 +14,7 @@ if(!defined('UC_API')) {
 
 error_reporting(0);
 
-define('IN_UC', TRUE);
+define('IN_UC', true);
 define('UC_CLIENT_VERSION', '1.6.0');
 define('UC_CLIENT_RELEASE', '20141101');
 
@@ -61,10 +61,10 @@ function uc_pm_list($uid, $page = 1, $pagesize = 10, $folder = 'inbox', $filter 
 
 function uc_pm_location($uid, $newpm = 0) {
     $apiurl = uc_http_url('pm_client', 'ls', 'uid=' . $uid);
-    @header("Expires: 0");
-    @header("Cache-Control: private, post-check=0, pre-check=0, max-age=0", FALSE);
-    @header("Pragma: no-cache");
-    @header("location: $apiurl");
+    @header('Expires: 0');
+    @header('Cache-Control: private, post-check=0, pre-check=0, max-age=0', false);
+    @header('Pragma: no-cache');
+    @header('Location: ' . $apiurl);
 }
 
 function uc_pm_send($fromuid, $msgto, $subject, $message, $instantly = 1, $replypmid = 0, $isusername = 0, $type = 0)

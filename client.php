@@ -1,13 +1,5 @@
 <?php
 
-/**
- * 纯 HTTP 版 Ucenter client
- * 基于 UC_Client 1.6.0 (20141101)
- * 可以直接替换官方原版 client 使用
- * 实现常用接口
- * 具体接口见下方代码
- */
-
 if (!defined('UC_API')) {
     exit('Access denied');
 }

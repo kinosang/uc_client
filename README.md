@@ -1,7 +1,7 @@
 uc_client
 ===
 
-A tiny uc_client rewrited by labs7in0. It use the ucenter http apis.
+A tiny implementation for UCenter client (uc_client). It use the UCenter HTTP APIs.
 
 ## Donate us
 

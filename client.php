@@ -8,7 +8,7 @@
  * 具体接口见下方代码
  */
 
-if(!defined('UC_API')) {
+if (!defined('UC_API')) {
     exit('Access denied');
 }
 
@@ -36,11 +36,11 @@ function uc_user_login($username, $password, $isuid = 3, $checkques = 0, $questi
 
     if (is_array($arr)) {
         $arr += array(
-            'status' => $arr[0],
+            'status'   => $arr[0],
             'username' => uc_charset($arr[1], 0),
             'password' => $arr[2],
-            'email' => $arr[3],
-            'merge' => $arr[4],
+            'email'    => $arr[3],
+            'merge'    => $arr[4],
         );
         return $arr;
     } else {
@@ -59,7 +59,8 @@ function uc_pm_list($uid, $page = 1, $pagesize = 10, $folder = 'inbox', $filter 
     return uc_http_request('pm', 'ls', 'uid=' . $uid . '&page=' . $page . '&pagesize=' . $pagesize . '&folder=' . $folder . '&filter=' . $filter . '&msglen=' . $msglen);
 }
 
-function uc_pm_location($uid, $newpm = 0) {
+function uc_pm_location($uid, $newpm = 0)
+{
     $apiurl = uc_http_url('pm_client', 'ls', 'uid=' . $uid);
     @header('Expires: 0');
     @header('Cache-Control: private, post-check=0, pre-check=0, max-age=0', false);
@@ -116,7 +117,7 @@ function uc_friend_delete($uid, $friendids)
 // 头像接口
 function uc_avatar($uid, $type = 'virtual', $returnhtml = 1)
 {
-    $input = urlencode(uc_authcode('uid=' . $uid . '&agent=' . md5($_SERVER['HTTP_USER_AGENT']) . '&time=' . time(), 'ENCODE', UC_KEY));
+    $input          = urlencode(uc_authcode('uid=' . $uid . '&agent=' . md5($_SERVER['HTTP_USER_AGENT']) . '&time=' . time(), 'ENCODE', UC_KEY));
     $uc_avatarflash = UC_API . '/images/camera.swf?inajax=1&appid=' . UC_APPID . '&input=' . $input . '&agent=' . md5($_SERVER['HTTP_USER_AGENT']) . '&ucapi=' . UC_API . '&avatartype=' . $type . '&uploadSize=2048';
     if ($returnhtml) {
         return '<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="450" height="253" id="mycamera" align="middle">
@@ -171,7 +172,7 @@ function uc_user_synlogout()
 function uc_user_updatepw($username, $newpw)
 {
     $username = urlencode(uc_charset($username));
-    $newpw = urlencode($newpw);
+    $newpw    = urlencode($newpw);
     return uc_http_request('user', 'edit', 'username=' . $username . '&newpw=' . $newpw . '&ignoreoldpw=1');
 }
 
@@ -186,8 +187,8 @@ function uc_user_register($username, $password, $email)
 {
     $username = urlencode(uc_charset($username));
     $password = urlencode($password);
-    $email = urlencode($email);
-    $regip = $_SERVER['REMOTE_ADDR'];
+    $email    = urlencode($email);
+    $regip    = $_SERVER['REMOTE_ADDR'];
     return uc_http_request('user', 'register', 'username=' . $username . '&password=' . $password . '&email=' . $email . '&ip=' . $regip);
 }
 
@@ -195,13 +196,13 @@ function uc_user_register($username, $password, $email)
 function uc_get_user($username)
 {
     $username = urlencode(uc_charset($username));
-    $s = uc_http_request('user', 'get_user', 'username=' . $username . '&isuid=0');
-    $arr = xml_unserialize($s);
+    $s        = uc_http_request('user', 'get_user', 'username=' . $username . '&isuid=0');
+    $arr      = xml_unserialize($s);
     if (is_array($arr)) {
         $arr += array(
-            'uid' => $arr[0],
+            'uid'      => $arr[0],
             'username' => uc_charset($arr[1], 0),
-            'email' => $arr[2],
+            'email'    => $arr[2],
         );
         return $arr;
     } else {
@@ -234,19 +235,19 @@ function uc_authcode($string, $operation = 'DECODE', $key = '', $expiry = 0)
 {
     $ckey_length = 4;
 
-    $key = md5($key);
+    $key  = md5($key);
     $keya = md5(substr($key, 0, 16));
     $keyb = md5(substr($key, 16, 16));
     $keyc = $ckey_length ? ($operation == 'DECODE' ? substr($string, 0, $ckey_length) : substr(md5(microtime()), -$ckey_length)) : '';
 
-    $cryptkey = $keya . md5($keya . $keyc);
+    $cryptkey   = $keya . md5($keya . $keyc);
     $key_length = strlen($cryptkey);
 
-    $string = $operation == 'DECODE' ? base64_decode(substr($string, $ckey_length)) : sprintf('%010d', $expiry ? $expiry + time() : 0) . substr(md5($string . $keyb), 0, 16) . $string;
+    $string        = $operation == 'DECODE' ? base64_decode(substr($string, $ckey_length)) : sprintf('%010d', $expiry ? $expiry + time() : 0) . substr(md5($string . $keyb), 0, 16) . $string;
     $string_length = strlen($string);
 
     $result = '';
-    $box = range(0, 255);
+    $box    = range(0, 255);
 
     $rndkey = array();
     for ($i = 0; $i <= 255; $i++) {
@@ -254,16 +255,16 @@ function uc_authcode($string, $operation = 'DECODE', $key = '', $expiry = 0)
     }
 
     for ($j = $i = 0; $i < 256; $i++) {
-        $j = ($j + $box[$i] + $rndkey[$i]) % 256;
-        $tmp = $box[$i];
+        $j       = ($j + $box[$i] + $rndkey[$i]) % 256;
+        $tmp     = $box[$i];
         $box[$i] = $box[$j];
         $box[$j] = $tmp;
     }
 
     for ($a = $j = $i = 0; $i < $string_length; $i++) {
-        $a = ($a + 1) % 256;
-        $j = ($j + $box[$a]) % 256;
-        $tmp = $box[$a];
+        $a       = ($a + 1) % 256;
+        $j       = ($j + $box[$a]) % 256;
+        $tmp     = $box[$a];
         $box[$a] = $box[$j];
         $box[$j] = $tmp;
         $result .= chr(ord($string[$i]) ^ ($box[($box[$a] + $box[$j]) % 256]));
@@ -292,9 +293,10 @@ function xn_get_url($url, $timeout = 5, $post = '', $cookie = '')
         }
 
         $cookie = array();
-        foreach( $_COOKIE as $key => $value ) {
+        foreach ($_COOKIE as $key => $value) {
             $cookie[] = $key . '=' . $value;
-        };
+        }
+        ;
 
         $cookie = implode('; ', $cookie);
 
@@ -318,14 +320,14 @@ function xn_get_url($url, $timeout = 5, $post = '', $cookie = '')
 function xml_unserialize($xml, $isnormal = false)
 {
     $xml_parser = new XML($isnormal);
-    $data = $xml_parser->parse($xml);
+    $data       = $xml_parser->parse($xml);
     $xml_parser->destruct();
     return $data;
 }
 
 function xml_serialize($arr, $htmlon = false, $isnormal = false, $level = 1)
 {
-    $s = $level == 1 ? "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<root>\r\n" : '';
+    $s     = $level == 1 ? "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<root>\r\n" : '';
     $space = str_repeat("\t", $level);
     foreach ($arr as $k => $v) {
         if (!is_array($v)) {

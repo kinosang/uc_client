@@ -381,6 +381,18 @@ function uc_avatar($uid, $type = 'virtual', $returnhtml = 1)
     }
 }
 
+// 检查头像
+function uc_check_avatar($uid, $size = 'middle', $type = 'virtual')
+{
+    $url = UC_API . '/avatar.php?uid=' . $uid . '&size=' . $size . '&type=' . $type . '&check_file_exists=1';
+    $res = xn_get_url($url, 5);
+    if ($res == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /* 标签接口 */
 
 // 获取标签数据

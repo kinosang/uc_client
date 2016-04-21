@@ -468,7 +468,7 @@ function uc_charset($s, $to = 1)
 function uc_http_url($module, $action, $arg = '')
 {
     $input = urlencode(uc_authcode($arg . '&agent=' . md5($_SERVER['HTTP_USER_AGENT']) . '&time=' . time(), 'ENCODE', UC_KEY));
-    return UC_API . ((substr(UC_API, -1) != '/') ? '/' : '') . 'index.php?' . 'm=' . $module . '&a=' . $action . '&inajax=2&release=' . UC_CLIENT_RELEASE . '&input=' . $input . '&appid=' . UC_APPID;
+    return UC_API . ((substr(UC_API, -1) != '/') ? '/' : '') . 'index.php?m=' . $module . '&a=' . $action . '&inajax=2&release=' . UC_CLIENT_RELEASE . '&input=' . $input . '&appid=' . UC_APPID;
 }
 
 // 执行 ucenter 服务端 api 调用

@@ -57,11 +57,11 @@ function uc_user_login($username, $password, $isuid = 3, $checkques = 0, $questi
 }
 
 // 获取用户数据
-function uc_get_user($username)
+function uc_get_user($username, $isuid = 0)
 {
     $s = uc_http_request('user', 'get_user', array(
-        'username' => uc_charset($usernamem),
-        'isuid'    => 0,
+        'username' => uc_charset($username),
+        'isuid'    => $isuid,
     ));
 
     $arr = xml_unserialize($s);
@@ -588,3 +588,4 @@ function xml_serialize($arr, $htmlon = false, $isnormal = false, $level = 1)
     $s = preg_replace("/([\x01-\x08\x0b-\x0c\x0e-\x1f])+/", ' ', $s);
     return $level == 1 ? $s . "</root>" : $s;
 }
+

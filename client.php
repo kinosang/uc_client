@@ -10,343 +10,29 @@ define('UC_CLIENT_RELEASE', '20141101');
 
 require_once 'xml.class.php';
 
-/* 用户接口 */
+/* 应用接口 */
 
-// 用户注册
-function uc_user_register($username, $password, $email)
+// 获取应用列表
+function uc_app_ls()
 {
-    return uc_http_request('user', 'register', array(
-        'username' => uc_charset($username),
-        'password' => $password,
-        'email'    => $email,
-        'ip'       => $_SERVER['REMOTE_ADDR'],
-    ));
-}
-
-// 用户登录
-function uc_user_login($username, $password, $isuid = 3, $checkques = 0, $questionid = '', $answer = '', $ip = '')
-{
-    $s = uc_http_request('user', 'login', array(
-        'username'   => uc_charset($username),
-        'password'   => $password,
-        'isuid'      => $isuid,
-        'checkques'  => $checkques,
-        'questionid' => $questionid,
-        'answer'     => $answer,
-        'ip'         => $ip,
-    ));
-
-    if (strpos($s, 'Access denied for agent changed') !== false) {
-        return '可能 APPKEY 没有设置正确。';
-    }
-
-    $arr = xml_unserialize($s);
-
-    if (is_array($arr)) {
-        $arr += array(
-            'status'   => $arr[0],
-            'username' => uc_charset($arr[1], 0),
-            'password' => $arr[2],
-            'email'    => $arr[3],
-            'merge'    => $arr[4],
-        );
-        return $arr;
-    } else {
-        return $arr;
-    }
-}
-
-// 获取用户数据
-function uc_get_user($username, $isuid = 0)
-{
-    $s = uc_http_request('user', 'get_user', array(
-        'username' => uc_charset($username),
-        'isuid'    => $isuid,
-    ));
-
-    $arr = xml_unserialize($s);
-
-    if (is_array($arr)) {
-        $arr += array(
-            'uid'      => $arr[0],
-            'username' => uc_charset($arr[1], 0),
-            'email'    => $arr[2],
-        );
-        return $arr;
-    } else {
-        return $s;
-    }
-}
-
-// 更新用户资料
-function uc_user_edit($username, $oldpw, $newpw, $email, $ignoreoldpw = 0, $questionid = '', $answer = '')
-{
-    return uc_http_request('user', 'edit', array(
-        'username'    => uc_charset($usernamem),
-        'oldpw'       => $oldpw,
-        'newpw'       => $newpw,
-        'email'       => $email,
-        'ignoreoldpw' => $ignoreoldpw,
-        'questionid'  => $questionid,
-        'answer'      => $answer,
-    ));
-}
-
-// 修改密码
-function uc_user_updatepw($username, $newpw)
-{
-    return uc_http_request('user', 'edit', array(
-        'username'    => uc_charset($username),
-        'newpw'       => $newpw,
-        'ignoreoldpw' => 1,
-    ));
-}
-
-// 删除用户
-function uc_user_delete($uid)
-{
-    return uc_http_request('user', 'delete', array('uid' => $uid));
-}
-
-/**
- * 同步登录
- * 返回一个 HTML 内容， script 标签 调用各 client
- */
-function uc_user_synlogin($uid)
-{
-    return uc_http_request('user', 'synlogin', array('uid' => $uid));
-}
-
-// 同步退出
-function uc_user_synlogout()
-{
-    return uc_http_request('user', 'synlogout');
-}
-
-// 检查 Email 地址
-function uc_user_checkemail($email)
-{
-    return uc_http_request('user', 'check_email', array('email' => $email));
-}
-
-// 检查用户名
-function uc_user_checkname($username)
-{
-    return uc_http_request('user', 'check_username', array('username' => uc_charset($username)));
-}
-
-// 添加保护用户
-function uc_user_addprotected($username, $admin = '')
-{
-    return uc_http_request('user', 'addprotected', array('username' => uc_charset($username), 'admin' => uc_charset($admin)));
-}
-
-// 删除保护用户
-function uc_user_deleteprotected($username)
-{
-    return uc_http_request('user', 'deleteprotected', array('username' => uc_charset($username)));
-}
-
-// 得到受保护的用户名列表
-function uc_user_getprotected()
-{
-    $s = uc_http_request('user', 'getprotected');
-
-    return xml_unserialize($s);
-}
-
-// 把重名用户合并到 UCenter
-function uc_user_merge($oldusername, $newusername, $uid, $password, $email)
-{
-    return uc_http_request('user', 'merge', array(
-        'oldusername' => uc_charset($oldusername),
-        'newusername' => uc_charset($newusername),
-        'uid'         => $uid,
-        'password'    => $password,
-        'email'       => $email,
-    ));
-}
-
-// 取消用户合并
-function uc_user_merge_remove($username)
-{
-    return uc_http_request('user', 'merge_remove', array('username' => uc_charset($username)));
-}
-
-/* 短消息接口 */
-
-// 进入短消息中心
-function uc_pm_location($uid, $newpm = 0)
-{
-    $apiurl = uc_http_url('pm_client', 'ls', array('uid' => $uid));
-    @header('Expires: 0');
-    @header('Cache-Control: private, post-check=0, pre-check=0, max-age=0', false);
-    @header('Pragma: no-cache');
-    @header('Location: ' . $apiurl);
-}
-
-// 检查新的短消息
-function uc_pm_checknew($uid, $more = 0)
-{
-    $s = uc_http_request('pm', 'check_newpm', array(
-        'uid'  => $uidm,
-        'more' => $more,
-    ));
-
-    return xml_unserialize($s);
-}
-
-// 发送短消息
-function uc_pm_send($fromuid, $msgto, $subject, $message, $instantly = 1, $replypmid = 0, $isusername = 0, $type = 0)
-{
-    return uc_http_request('pm', 'sendpm', array(
-        'fromuid'    => $fromuid,
-        'msgto'      => uc_charset($msgto),
-        'subject'    => uc_charset($subject),
-        'message'    => uc_charset($message),
-        'replypmid'  => $replypmid,
-        'isusername' => $isusername,
-        'type'       => $type,
-    ));
-}
-
-// 删除短消息
-function uc_pm_delete($uid, $folder, $pmids)
-{
-    return uc_http_request('pm', 'delete', array(
-        'uid'   => $uid,
-        'pmids' => $pmids,
-    ));
-}
-
-// 获取短消息列表
-function uc_pm_list($uid, $page = 1, $pagesize = 10, $folder = 'inbox', $filter = 'newpm', $msglen = 0)
-{
-    $s = uc_http_request('pm', 'ls', array(
-        'uid'      => $uid,
-        'page'     => $page,
-        'pagesize' => $pagesize,
-        'folder'   => uc_charset($folder),
-        'filter'   => $filter,
-        'msglen'   => $msglen,
-    ));
-
-    return xml_unserialize($s);
-}
-
-// 忽略未读消息提示
-function uc_pm_ignore($uid)
-{
-    return uc_http_request('pm', 'ignore', array('uid' => $uid));
-}
-
-// 获取短消息内容
-function uc_pm_view($uid, $pmid = 0, $touid = 0, $daterange = 1, $page = 0, $pagesize = 10, $type = 0, $isplid = 0)
-{
-    $s = uc_http_request('pm', 'view', array(
-        'uid'       => $uid,
-        'pmid'      => (is_numeric($pmid) ? $pmid : 0),
-        'touid'     => $touid,
-        'daterange' => $daterange,
-        'page'      => $page,
-        'pagesize'  => $pagesize,
-        'type'      => $type,
-        'isplid'    => $isplid,
-    ));
-
-    return xml_unserialize($s);
-}
-
-// 获取单条短消息内容
-function uc_pm_viewnode($uid, $type, $pmid)
-{
-    $s = uc_http_request('pm', 'viewnode', array(
-        'uid'  => $uid,
-        'type' => $type,
-        'pmid' => (is_numeric($pmid) ? $pmid : 0),
-    ));
-
-    return xml_unserialize($s);
-}
-
-// 获取黑名单
-function uc_pm_blackls_get($uid)
-{
-    return uc_http_request('pm', 'blackls_get', array('uid' => $uid));
-}
-
-// 更新黑名单
-function uc_pm_blackls_set($uid, $blackls)
-{
-    return uc_http_request('pm', 'blackls_set', array(
-        'uid'     => $uid,
-        'blackls' => uc_charset($blackls),
-    ));
-}
-
-// 添加黑名单条目
-function uc_pm_blackls_add($uid, $username)
-{
-    return uc_http_request('pm', 'blackls_add', array(
-        'uid'      => $uid,
-        'username' => uc_charset($username),
-    ));
-}
-
-// 删除黑名单条目
-function uc_pm_blackls_delete($uid, $username)
-{
-    return uc_http_request('pm', 'blackls_delete', array(
-        'uid'      => $uid,
-        'username' => uc_charset($username),
-    ));
-}
-
-/* 好友接口 */
-
-// 添加好友
-function uc_friend_add($uid, $friendid, $comment = '')
-{
-    return uc_http_request('friend', 'add', array(
-        'uid'      => $uid,
-        'friendid' => $friendid,
-        'comment'  => uc_charset($comment),
-    ));
-}
-
-// 删除好友
-function uc_friend_delete($uid, $friendids)
-{
-    return uc_http_request('friend', 'delete', array(
-        'uid'       => $uid,
-        'friendids' => is_string($friendids) ? $friendids : implode(',', $friendids),
-    ));
-}
-
-// 获取好友总数
-function uc_friend_totalnum($uid, $direction = 0)
-{
-    return uc_http_request('friend', 'totalnum', array(
-        'uid'       => $uid,
-        'direction' => $direction,
-    ));
-}
-
-// 获取好友列表
-function uc_friend_ls($uid, $page = 1, $pagesize = 10, $totalnum = 10, $direction = 0)
-{
-    $s = uc_http_request('friend', 'ls', array(
-        'uid'       => $uid,
-        'page'      => $page,
-        'pagesize'  => $pagesize,
-        'totalnum'  => $totalnum,
-        'direction' => $direction,
-    ));
+    $s = uc_http_request('app', 'ls');
 
     return xml_unserialize($s);
 }
 
 /* 头像接口 */
+
+// 检查头像
+function uc_check_avatar($uid, $size = 'middle', $type = 'virtual')
+{
+    $url = UC_API . '/avatar.php?uid=' . $uid . '&size=' . $size . '&type=' . $type . '&check_file_exists=1';
+    $res = xn_get_url($url, 5);
+    if ($res == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 // 修改头像
 function uc_avatar($uid, $type = 'virtual', $returnhtml = 1)
@@ -379,31 +65,6 @@ function uc_avatar($uid, $type = 'virtual', $returnhtml = 1)
             'allowScriptAccess', 'always',
         );
     }
-}
-
-// 检查头像
-function uc_check_avatar($uid, $size = 'middle', $type = 'virtual')
-{
-    $url = UC_API . '/avatar.php?uid=' . $uid . '&size=' . $size . '&type=' . $type . '&check_file_exists=1';
-    $res = xn_get_url($url, 5);
-    if ($res == 1) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/* 标签接口 */
-
-// 获取标签数据
-function uc_tag_get($tagname, $nums = 0)
-{
-    $s = uc_http_request('tag', 'gettag', array(
-        'tagname' => uc_charset($tagname),
-        'nums'    => $nums,
-    ));
-
-    return xml_unserialize($s);
 }
 
 /* 事件接口 */
@@ -446,14 +107,353 @@ function uc_feed_get($limit = 100, $delete = true)
     return xml_unserialize($s);
 }
 
-/* 应用接口 */
+/* 好友接口 */
 
-// 获取应用列表
-function uc_app_ls()
+// 添加好友
+function uc_friend_add($uid, $friendid, $comment = '')
 {
-    $s = uc_http_request('app', 'ls');
+    return uc_http_request('friend', 'add', array(
+        'uid'      => $uid,
+        'friendid' => $friendid,
+        'comment'  => uc_charset($comment),
+    ));
+}
+
+// 删除好友
+function uc_friend_delete($uid, $friendids)
+{
+    return uc_http_request('friend', 'delete', array(
+        'uid'       => $uid,
+        'friendids' => is_string($friendids) ? $friendids : implode(',', $friendids),
+    ));
+}
+
+// 获取好友列表
+function uc_friend_ls($uid, $page = 1, $pagesize = 10, $totalnum = 10, $direction = 0)
+{
+    $s = uc_http_request('friend', 'ls', array(
+        'uid'       => $uid,
+        'page'      => $page,
+        'pagesize'  => $pagesize,
+        'totalnum'  => $totalnum,
+        'direction' => $direction,
+    ));
 
     return xml_unserialize($s);
+}
+
+// 获取好友总数
+function uc_friend_totalnum($uid, $direction = 0)
+{
+    return uc_http_request('friend', 'totalnum', array(
+        'uid'       => $uid,
+        'direction' => $direction,
+    ));
+}
+
+/* 短消息接口 */
+
+// 添加黑名单条目
+function uc_pm_blackls_add($uid, $username)
+{
+    return uc_http_request('pm', 'blackls_add', array(
+        'uid'      => $uid,
+        'username' => uc_charset($username),
+    ));
+}
+
+// 删除黑名单条目
+function uc_pm_blackls_delete($uid, $username)
+{
+    return uc_http_request('pm', 'blackls_delete', array(
+        'uid'      => $uid,
+        'username' => uc_charset($username),
+    ));
+}
+
+// 获取黑名单
+function uc_pm_blackls_get($uid)
+{
+    return uc_http_request('pm', 'blackls_get', array('uid' => $uid));
+}
+
+// 更新黑名单
+function uc_pm_blackls_set($uid, $blackls)
+{
+    return uc_http_request('pm', 'blackls_set', array(
+        'uid'     => $uid,
+        'blackls' => uc_charset($blackls),
+    ));
+}
+
+// 检查新的短消息
+function uc_pm_checknew($uid, $more = 0)
+{
+    $s = uc_http_request('pm', 'check_newpm', array(
+        'uid'  => $uidm,
+        'more' => $more,
+    ));
+
+    return xml_unserialize($s);
+}
+
+// 删除短消息
+function uc_pm_delete($uid, $folder, $pmids)
+{
+    return uc_http_request('pm', 'delete', array(
+        'uid'   => $uid,
+        'pmids' => $pmids,
+    ));
+}
+
+// 忽略未读消息提示
+function uc_pm_ignore($uid)
+{
+    return uc_http_request('pm', 'ignore', array('uid' => $uid));
+}
+
+// 获取短消息列表
+function uc_pm_list($uid, $page = 1, $pagesize = 10, $folder = 'inbox', $filter = 'newpm', $msglen = 0)
+{
+    $s = uc_http_request('pm', 'ls', array(
+        'uid'      => $uid,
+        'page'     => $page,
+        'pagesize' => $pagesize,
+        'folder'   => uc_charset($folder),
+        'filter'   => $filter,
+        'msglen'   => $msglen,
+    ));
+
+    return xml_unserialize($s);
+}
+
+// 发送短消息
+function uc_pm_send($fromuid, $msgto, $subject, $message, $instantly = 1, $replypmid = 0, $isusername = 0, $type = 0)
+{
+    return uc_http_request('pm', 'sendpm', array(
+        'fromuid'    => $fromuid,
+        'msgto'      => uc_charset($msgto),
+        'subject'    => uc_charset($subject),
+        'message'    => uc_charset($message),
+        'replypmid'  => $replypmid,
+        'isusername' => $isusername,
+        'type'       => $type,
+    ));
+}
+
+// 获取短消息内容
+function uc_pm_view($uid, $pmid = 0, $touid = 0, $daterange = 1, $page = 0, $pagesize = 10, $type = 0, $isplid = 0)
+{
+    $s = uc_http_request('pm', 'view', array(
+        'uid'       => $uid,
+        'pmid'      => (is_numeric($pmid) ? $pmid : 0),
+        'touid'     => $touid,
+        'daterange' => $daterange,
+        'page'      => $page,
+        'pagesize'  => $pagesize,
+        'type'      => $type,
+        'isplid'    => $isplid,
+    ));
+
+    return xml_unserialize($s);
+}
+
+// 获取单条短消息内容
+function uc_pm_viewnode($uid, $type, $pmid)
+{
+    $s = uc_http_request('pm', 'viewnode', array(
+        'uid'  => $uid,
+        'type' => $type,
+        'pmid' => (is_numeric($pmid) ? $pmid : 0),
+    ));
+
+    return xml_unserialize($s);
+}
+
+/* 消息中心接口 */
+
+// 进入短消息中心
+function uc_pm_location($uid, $newpm = 0)
+{
+    $apiurl = uc_http_url('pm_client', 'ls', array('uid' => $uid));
+    @header('Expires: 0');
+    @header('Cache-Control: private, post-check=0, pre-check=0, max-age=0', false);
+    @header('Pragma: no-cache');
+    @header('Location: ' . $apiurl);
+}
+
+/* 标签接口 */
+
+// 获取标签数据
+function uc_tag_get($tagname, $nums = 0)
+{
+    $s = uc_http_request('tag', 'gettag', array(
+        'tagname' => uc_charset($tagname),
+        'nums'    => $nums,
+    ));
+
+    return xml_unserialize($s);
+}
+
+/* 用户接口 */
+
+// 添加保护用户
+function uc_user_addprotected($username, $admin = '')
+{
+    return uc_http_request('user', 'addprotected', array('username' => uc_charset($username), 'admin' => uc_charset($admin)));
+}
+
+// 检查 Email 地址
+function uc_user_checkemail($email)
+{
+    return uc_http_request('user', 'check_email', array('email' => $email));
+}
+
+// 检查用户名
+function uc_user_checkname($username)
+{
+    return uc_http_request('user', 'check_username', array('username' => uc_charset($username)));
+}
+
+// 删除用户
+function uc_user_delete($uid)
+{
+    return uc_http_request('user', 'delete', array('uid' => $uid));
+}
+
+// 删除保护用户
+function uc_user_deleteprotected($username)
+{
+    return uc_http_request('user', 'deleteprotected', array('username' => uc_charset($username)));
+}
+
+// 更新用户资料
+function uc_user_edit($username, $oldpw, $newpw, $email, $ignoreoldpw = 0, $questionid = '', $answer = '')
+{
+    return uc_http_request('user', 'edit', array(
+        'username'    => uc_charset($usernamem),
+        'oldpw'       => $oldpw,
+        'newpw'       => $newpw,
+        'email'       => $email,
+        'ignoreoldpw' => $ignoreoldpw,
+        'questionid'  => $questionid,
+        'answer'      => $answer,
+    ));
+}
+
+// 获取用户数据
+function uc_get_user($username, $isuid = 0)
+{
+    $s = uc_http_request('user', 'get_user', array(
+        'username' => uc_charset($username),
+        'isuid'    => $isuid,
+    ));
+
+    $arr = xml_unserialize($s);
+
+    if (is_array($arr)) {
+        $arr += array(
+            'uid'      => $arr[0],
+            'username' => uc_charset($arr[1], 0),
+            'email'    => $arr[2],
+        );
+        return $arr;
+    } else {
+        return $s;
+    }
+}
+
+// 得到受保护的用户名列表
+function uc_user_getprotected()
+{
+    $s = uc_http_request('user', 'getprotected');
+
+    return xml_unserialize($s);
+}
+
+// 用户登录
+function uc_user_login($username, $password, $isuid = 3, $checkques = 0, $questionid = '', $answer = '', $ip = '')
+{
+    $s = uc_http_request('user', 'login', array(
+        'username'   => uc_charset($username),
+        'password'   => $password,
+        'isuid'      => $isuid,
+        'checkques'  => $checkques,
+        'questionid' => $questionid,
+        'answer'     => $answer,
+        'ip'         => $ip,
+    ));
+
+    if (strpos($s, 'Access denied for agent changed') !== false) {
+        return '可能 APPKEY 没有设置正确。';
+    }
+
+    $arr = xml_unserialize($s);
+
+    if (is_array($arr)) {
+        $arr += array(
+            'status'   => $arr[0],
+            'username' => uc_charset($arr[1], 0),
+            'password' => $arr[2],
+            'email'    => $arr[3],
+            'merge'    => $arr[4],
+        );
+        return $arr;
+    } else {
+        return $arr;
+    }
+}
+
+// 把重名用户合并到 UCenter
+function uc_user_merge($oldusername, $newusername, $uid, $password, $email)
+{
+    return uc_http_request('user', 'merge', array(
+        'oldusername' => uc_charset($oldusername),
+        'newusername' => uc_charset($newusername),
+        'uid'         => $uid,
+        'password'    => $password,
+        'email'       => $email,
+    ));
+}
+
+// 取消用户合并
+function uc_user_merge_remove($username)
+{
+    return uc_http_request('user', 'merge_remove', array('username' => uc_charset($username)));
+}
+
+// 用户注册
+function uc_user_register($username, $password, $email)
+{
+    return uc_http_request('user', 'register', array(
+        'username' => uc_charset($username),
+        'password' => $password,
+        'email'    => $email,
+        'ip'       => $_SERVER['REMOTE_ADDR'],
+    ));
+}
+
+// 同步登录
+// 返回一个 HTML script 标签
+function uc_user_synlogin($uid)
+{
+    return uc_http_request('user', 'synlogin', array('uid' => $uid));
+}
+
+// 同步退出
+function uc_user_synlogout()
+{
+    return uc_http_request('user', 'synlogout');
+}
+
+// 修改密码
+function uc_user_updatepw($username, $newpw)
+{
+    return uc_http_request('user', 'edit', array(
+        'username'    => uc_charset($username),
+        'newpw'       => $newpw,
+        'ignoreoldpw' => 1,
+    ));
 }
 
 /* 内部函数 */
@@ -588,4 +588,3 @@ function xml_serialize($arr, $htmlon = false, $isnormal = false, $level = 1)
     $s = preg_replace("/([\x01-\x08\x0b-\x0c\x0e-\x1f])+/", ' ', $s);
     return $level == 1 ? $s . "</root>" : $s;
 }
-

@@ -22,18 +22,6 @@ function uc_app_ls()
 
 /* 头像接口 */
 
-// 检查头像
-function uc_check_avatar($uid, $size = 'middle', $type = 'virtual')
-{
-    $url = UC_API . '/avatar.php?uid=' . $uid . '&size=' . $size . '&type=' . $type . '&check_file_exists=1';
-    $res = xn_get_url($url, 5);
-    if ($res == 1) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 // 修改头像
 function uc_avatar($uid, $type = 'virtual', $returnhtml = 1)
 {
@@ -64,6 +52,18 @@ function uc_avatar($uid, $type = 'virtual', $returnhtml = 1)
             'swLiveConnect', 'true',
             'allowScriptAccess', 'always',
         );
+    }
+}
+
+// 检查头像
+function uc_check_avatar($uid, $size = 'middle', $type = 'virtual')
+{
+    $url = UC_API . '/avatar.php?uid=' . $uid . '&size=' . $size . '&type=' . $type . '&check_file_exists=1';
+    $res = xn_get_url($url, 5);
+    if ($res == 1) {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -297,6 +297,28 @@ function uc_tag_get($tagname, $nums = 0)
 
 /* 用户接口 */
 
+// 获取用户数据
+function uc_get_user($username, $isuid = 0)
+{
+    $s = uc_http_request('user', 'get_user', array(
+        'username' => uc_charset($username),
+        'isuid'    => $isuid,
+    ));
+
+    $arr = xml_unserialize($s);
+
+    if (is_array($arr)) {
+        $arr += array(
+            'uid'      => $arr[0],
+            'username' => uc_charset($arr[1], 0),
+            'email'    => $arr[2],
+        );
+        return $arr;
+    } else {
+        return $s;
+    }
+}
+
 // 添加保护用户
 function uc_user_addprotected($username, $admin = '')
 {
@@ -339,28 +361,6 @@ function uc_user_edit($username, $oldpw, $newpw, $email, $ignoreoldpw = 0, $ques
         'questionid'  => $questionid,
         'answer'      => $answer,
     ));
-}
-
-// 获取用户数据
-function uc_get_user($username, $isuid = 0)
-{
-    $s = uc_http_request('user', 'get_user', array(
-        'username' => uc_charset($username),
-        'isuid'    => $isuid,
-    ));
-
-    $arr = xml_unserialize($s);
-
-    if (is_array($arr)) {
-        $arr += array(
-            'uid'      => $arr[0],
-            'username' => uc_charset($arr[1], 0),
-            'email'    => $arr[2],
-        );
-        return $arr;
-    } else {
-        return $s;
-    }
 }
 
 // 得到受保护的用户名列表

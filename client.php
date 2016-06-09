@@ -190,7 +190,7 @@ function uc_pm_blackls_set($uid, $blackls)
 function uc_pm_checknew($uid, $more = 0)
 {
     $s = uc_http_request('pm', 'check_newpm', array(
-        'uid'  => $uidm,
+        'uid'  => $uid,
         'more' => $more,
     ));
 

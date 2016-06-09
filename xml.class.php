@@ -2,14 +2,13 @@
 
 class XML
 {
-
     public $parser;
     public $document;
     public $stack;
     public $data;
     public $last_opened_tag;
     public $isnormal;
-    public $attrs = array();
+    public $attrs  = array();
     public $failed = false;
 
     public function __construct($isnormal)
@@ -20,7 +19,7 @@ class XML
     public function XML($isnormal)
     {
         $this->isnormal = $isnormal;
-        $this->parser = xml_parser_create('ISO-8859-1');
+        $this->parser   = xml_parser_create('UTF-8');
         xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, false);
         xml_set_object($this->parser, $this);
         xml_set_element_handler($this->parser, 'open', 'close');
@@ -35,13 +34,13 @@ class XML
     public function parse(&$data)
     {
         $this->document = array();
-        $this->stack = array();
+        $this->stack    = array();
         return xml_parse($this->parser, $data, true) && !$this->failed ? $this->document : '';
     }
 
     public function open(&$parser, $tag, $attributes)
     {
-        $this->data = '';
+        $this->data   = '';
         $this->failed = false;
         if (!$this->isnormal) {
             if (isset($attributes['id']) && !is_string($this->document[$attributes['id']])) {
@@ -56,9 +55,9 @@ class XML
                 $this->failed = true;
             }
         }
-        $this->stack[] = &$this->document;
+        $this->stack[]         = &$this->document;
         $this->last_opened_tag = $tag;
-        $this->attrs = $attributes;
+        $this->attrs           = $attributes;
     }
 
     public function data(&$parser, $data)
@@ -71,7 +70,7 @@ class XML
     public function close(&$parser, $tag)
     {
         if ($this->last_opened_tag == $tag) {
-            $this->document = $this->data;
+            $this->document        = $this->data;
             $this->last_opened_tag = null;
         }
         array_pop($this->stack);
@@ -79,5 +78,4 @@ class XML
             $this->document = &$this->stack[count($this->stack) - 1];
         }
     }
-
 }
